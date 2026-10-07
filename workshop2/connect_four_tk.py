@@ -1,6 +1,10 @@
-class InvalidColumnError(Exception):
-    pass
+import tkinter as tk
+from tkinter import messagebox
 
+
+ROWS = 6
+COLS = 7
+SLOTS = 4
 
 class FullColumnError(Exception):
     pass
@@ -8,16 +12,6 @@ class FullColumnError(Exception):
 
 def create_matrix(rows, cols):
     return [[0 for _ in range(cols)] for _ in range(rows)]
-
-
-def print_matrix(matrix_):
-    for row_ in matrix_:
-        print(row_)
-
-
-def validate_column_choice(col_, max_index):
-    if not (0 <= col_ < max_index):
-        raise InvalidColumnError
 
 
 def place_player_choice(matrix_, c ,player_num):
@@ -99,37 +93,68 @@ def check_for_winner(matrix_, r, c, player_num, slots):
         or check_left_diagonal_winner(matrix_, r, c, player_num, slots))
 
 
-ROWS = 6
-COLS = 7
-SLOTS = 4
+def update_ui(labels_, row_, col_, player_num):
+    color = "red" if player_num == 1 else "blue"
+    labels_[row_][col_].config(bg=color)
 
-matrix = create_matrix(ROWS, COLS)
 
-print_matrix(matrix)
+def reset_game(matrix_, labels_):
+    for r in range(len(matrix_)):
+        for c in range(len(matrix_[0])):
+            matrix_[r][c] = 0
+            labels_[r][c].config(bg="white")
 
-player_number = 1
-counter = 0
 
-while True:
+def handle_column_click(matrix_, labels_, column_, player_n, slots_, counter_):
     try:
-        column_num = int(input(f"Player {player_number}, please choose a column:\n")) - 1
-        validate_column_choice(column_num, COLS)
-        row, col = place_player_choice(matrix, column_num, player_number)
-        print_matrix(matrix)
+        row, column_num = place_player_choice(matrix_, column_, player_n)
+        update_ui(labels_, row, column_num, player_n)
 
-        if check_for_winner(matrix, row, col, player_number, SLOTS):
-            print(f"Player {player_number} wins!")
-            break
+        if check_for_winner(matrix_, row, column_num, player_n, slots_):
+            messagebox.showinfo("Game over!", f"Player {player_n} wins!")
+            reset_game(matrix_, labels_)
+            return 1, 0
 
-        counter += 1
-        if ROWS * COLS == counter:
-            print(f"Draw!")
-            break
+        counter_ += 1
 
-        player_number = 2 if player_number == 1 else 1
-    except ValueError:
-        print("Please enter a valid number!")
-    except InvalidColumnError:
-        print(f"Please select a column between 1 and {COLS}")
+        if ROWS * COLS == counter_:
+            messagebox.showinfo("Game over!", f"The game is draw!")
+            reset_game(matrix_, labels_)
+            return 1, 0
+
     except FullColumnError:
-        print(f"Position is already occupied! Please choose another!")
+        messagebox.showerror("Full Column Error", "Position is already occupied! Please select another column.")
+
+    return 2 if player_n == 1 else 1, counter_
+
+
+def create_ui(root, rows, cols, slots):
+    matrix = create_matrix(rows, cols)
+    labels = [[tk.Label(root, text=" ", relief="solid", width=16, height=6) for _ in range(cols)] for _ in range(rows)]
+    for r in range(rows):
+        for c in range(cols):
+            labels[r][c].grid(row=r+1, column=c)
+
+    player_state = {"player_num": 1, "counter": 0}
+
+    def on_click(column_num, p_state):
+        p_state["player_num"], p_state["counter"] = handle_column_click(matrix, labels, column_num, player_state["player_num"], rows, cols, slots, player_state["counter"])
+
+
+    buttons = [tk.Button(root, text="⬇", width=16, height=6, bg="yellow", command=lambda c_idx=col: on_click(c_idx, player_state)) for col in range(cols)]
+    for col, button in enumerate(buttons):
+        button.grid(row=0, column=col)
+
+
+def start_game():
+    root = tk.Tk()
+    root.title("Connect Four")
+
+    create_ui(root, ROWS, COLS, SLOTS)
+
+    root.mainloop()
+
+
+
+if __name__ == '__main__':
+    start_game()
