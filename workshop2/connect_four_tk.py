@@ -105,7 +105,7 @@ def reset_game(matrix_, labels_):
             labels_[r][c].config(bg="white")
 
 
-def handle_column_click(matrix_, labels_, column_, player_n, slots_, counter_):
+def handle_column_click(matrix_, labels_, column_, player_n, rows_, cols_, slots_, counter_):
     try:
         row, column_num = place_player_choice(matrix_, column_, player_n)
         update_ui(labels_, row, column_num, player_n)
