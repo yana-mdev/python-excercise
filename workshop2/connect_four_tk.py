@@ -102,13 +102,12 @@ def reset_game(matrix_, labels_):
     for r in range(len(matrix_)):
         for c in range(len(matrix_[0])):
             matrix_[r][c] = 0
-            labels_[r][c].config(bg="white")
+            labels_[r][c].config(bg="grey")
 
 
 def handle_column_click(matrix_, labels_, column_, player_n, rows_, cols_, slots_, counter_):
     try:
         row, column_num = place_player_choice(matrix_, column_, player_n)
-        update_ui(labels_, row, column_num, player_n)
 
         if check_for_winner(matrix_, row, column_num, player_n, slots_):
             messagebox.showinfo("Game over!", f"Player {player_n} wins!")
@@ -121,6 +120,8 @@ def handle_column_click(matrix_, labels_, column_, player_n, rows_, cols_, slots
             messagebox.showinfo("Game over!", f"The game is draw!")
             reset_game(matrix_, labels_)
             return 1, 0
+
+        update_ui(labels_, row, column_num, player_n)
 
     except FullColumnError:
         messagebox.showerror("Full Column Error", "Position is already occupied! Please select another column.")
